@@ -1,13 +1,14 @@
 from django.db import models
 from django.contrib.auth import models as auth_models
 
-from managers import RipOffManager
+from RipoffServer.managers import RipoffManager
 
 from enum import Enum
 
 
+# MODELS
 class SiteUser(auth_models.User):
-    rda_plan = models.IntegerField(max_length=1)  # Level 0-3
+    rda_plan = models.IntegerField()  # Level 0-3
 
 
 class Product(models.Model):
@@ -17,7 +18,7 @@ class Product(models.Model):
 
 class Location(models.Model):
     name = models.CharField(max_length=40)
-    discount_plan = models.ForeignKey('DiscountPlan', on_delete=models.SET_DEFAULT)
+    discount_plan = models.ForeignKey('DiscountPlan', null=True, on_delete=models.SET_NULL)
 
 
 class PaymentType(Enum):
@@ -32,13 +33,25 @@ class DiscountPlan(models.Model):
     cc_discount = models.FloatField(verbose_name="Cougar Cash Discount")
 
 
-class RipOff(models.Model):
-    objects = RipOffManager()  # Supplies with create_ripoff function that dynamically calculates ripoff
+class Ripoff(models.Model):
+    objects = RipoffManager()  # Supplies with create_ripoff function that dynamically calculates ripoff
 
-    user = models.ForeignKey('SiteUser', on_delete=models.SET_DEFAULT)
+    date = models.DateTimeField(auto_now=True)
+
+    user = models.ForeignKey('SiteUser', null=True, on_delete=models.SET_NULL)
     product = models.CharField(max_length=40)
     location = models.ForeignKey('Location', on_delete=None)
     payment_type = models.CharField(max_length=3, choices=[(payment, payment.value) for payment in PaymentType])
-    cost = models.DecimalField(max_digits=3, decimal_places=2)
+    base_cost = models.DecimalField(max_digits=3, decimal_places=2)
 
-    ripoff = models.DecimalField(max_digits=3, decimal_places=2)  # Will be dynamically calculated
+    amount = models.DecimalField(max_digits=3, decimal_places=2)  # Will be dynamically calculated
+
+    @staticmethod
+    def get_running_total(self):
+        total = 0
+
+        ripoffs = self.objects.all()
+        for ripoff in ripoffs:
+            total += ripoff.amount
+
+        return total

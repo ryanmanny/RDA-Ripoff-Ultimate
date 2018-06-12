@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class RipoffserverConfig(AppConfig):
+class RipoffServerConfig(AppConfig):
     name = 'RipoffServer'

@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 
 import json
 
-from models import Product, Location, PaymentType, RipOff
+from RipoffServer.models import Product, Location, PaymentType, Ripoff
 
 
 @login_required
@@ -18,5 +18,8 @@ def add_ripoff(request):
     location = Location.objects.get(name=location_name)
     payment_type = PaymentType[payment_type_name]
 
-    ripoff = RipOff.objects.create_ripoff(product=product, location=location, payment_type=payment_type, cost=cost)
-    return HttpResponse(json.dumps({'success': ripoff is not None}))
+    ripoff = Ripoff.objects.create_ripoff(product=product, location=location, payment_type=payment_type, cost=cost)
+
+    success = ripoff is not None
+
+    return HttpResponse(json.dumps({'success': success}))

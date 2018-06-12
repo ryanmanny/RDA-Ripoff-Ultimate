@@ -17,13 +17,14 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-import views
+from RipoffServer import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/login/', auth_views.LoginView.as_view()),
 ]
 
+# Database endpoints
 urlpatterns += [
     path('add_ripoff/', views.add_ripoff)
 ]
