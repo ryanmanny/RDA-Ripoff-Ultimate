@@ -8,29 +8,43 @@ from enum import Enum
 
 # MODELS
 class SiteUser(auth_models.User):
-    rda_plan = models.IntegerField()  # Level 0-3
+    rda_plan = models.IntegerField(verbose_name="RDA Plan")  # Level 0-3
+    wsu_id = models.CharField(verbose_name="WSU ID Number", max_length=8)
+
+    def __str__(self):
+        return "<" + str(self.username) + " - " + str(self.wsu_id) + ">"
 
 
 class Product(models.Model):
     name = models.CharField(max_length=40)
-    # Made its own model for further extensibility later
+
+    def __str__(self):
+        return "<" + str(self.name) + ">"
 
 
 class Location(models.Model):
     name = models.CharField(max_length=40)
     discount_plan = models.ForeignKey('DiscountPlan', null=True, on_delete=models.SET_NULL)
 
+    def __str__(self):
+        return "<" + str(self.name) + " - " + str(self.discount_plan) + ">"
+
+
+class DiscountPlan(models.Model):
+    # Percentage discounts applied to different purchase methods
+    name = models.CharField(max_length=40)
+
+    rda_discount = models.DecimalField(verbose_name="RDA Discount", max_digits=3, decimal_places=1)
+    cc_discount = models.DecimalField(verbose_name="Cougar Cash Discount", max_digits=3, decimal_places=1)
+
+    def __str__(self):
+        return "<" + "RDA: " + str(self.rda_discount) + ", CC: " + str(self.cc_discount) + ">"
+
 
 class PaymentType(Enum):
     CRD = "Credit Card"
     CGR = "Cougar Cash"
     RDA = "RDA"
-
-
-class DiscountPlan(models.Model):
-    # Percentage discounts applied to different purchase methods
-    rda_discount = models.FloatField(verbose_name="RDA Discount")
-    cc_discount = models.FloatField(verbose_name="Cougar Cash Discount")
 
 
 class Ripoff(models.Model):
@@ -45,6 +59,9 @@ class Ripoff(models.Model):
     base_cost = models.DecimalField(max_digits=3, decimal_places=2)
 
     amount = models.DecimalField(max_digits=3, decimal_places=2)  # Will be dynamically calculated
+
+    def __str__(self):
+        return "<" + "$" + str(self.amount) + " - " + str(self.payment_type) + ">"
 
     @staticmethod
     def get_running_total(self):

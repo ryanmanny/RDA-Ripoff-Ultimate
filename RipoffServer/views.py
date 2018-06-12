@@ -9,10 +9,12 @@ from RipoffServer.models import Product, Location, PaymentType, Ripoff
 
 @login_required
 def add_ripoff(request):
-    product_name = request.GET['product_name']
-    location_name = request.GET['location_name']
-    payment_type_name = request.GET['payment_type_name']
-    cost = request.GET['cost']
+    product_name = request.POST['product_name']
+    location_name = request.POST['location_name']
+    payment_type_name = request.POST['payment_type_name']
+    cost = request.POST['cost']
+
+    product_name = " ".join([word.strip().capitalize() for word in product_name.split()])
 
     product, created = Product.objects.get_or_create(name=product_name)
     location = Location.objects.get(name=location_name)
