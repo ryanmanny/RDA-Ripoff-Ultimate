@@ -9,19 +9,21 @@ from RipoffServer.models import Product, Location, PaymentType, Ripoff
 
 @login_required
 def add_ripoff(request):
+    errors = []
+
     product_name = request.POST['product_name']
     location_name = request.POST['location_name']
     payment_type_name = request.POST['payment_type_name']
     cost = request.POST['cost']
 
-    product_name = " ".join([word.strip().capitalize() for word in product_name.split()])
+    product_name = " ".join([word.strip().capitalize() for word in product_name.split().lower()])
 
     product, created = Product.objects.get_or_create(name=product_name)
     location = Location.objects.get(name=location_name)
     payment_type = PaymentType[payment_type_name]
 
-    ripoff = Ripoff.objects.create_ripoff(product=product, location=location, payment_type=payment_type, cost=cost)
+    if not errors:
+        ripoff = Ripoff(product=product, location=location, payment_type=payment_type, cost=cost)
+        ripoff.save()
 
-    success = ripoff is not None
-
-    return HttpResponse(json.dumps({'success': success}))
+    return HttpResponse(json.dumps({'errors': errors}))

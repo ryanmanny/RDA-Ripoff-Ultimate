@@ -58,17 +58,17 @@ class Ripoff(models.Model):
     payment_type = models.CharField(max_length=3, choices=[(payment, payment.value) for payment in PaymentType])
     base_cost = models.DecimalField(max_digits=3, decimal_places=2)
 
-    amount = models.DecimalField(max_digits=3, decimal_places=2)  # Will be dynamically calculated
-
-    def __str__(self):
-        return "<" + "$" + str(self.amount) + " - " + str(self.payment_type) + ">"
+    ripoff_amount = models.DecimalField(max_digits=3, decimal_places=2, blank=True)  # Will be dynamically calculated
 
     @staticmethod
-    def get_running_total(self):
-        total = 0
+    def calculate_simple_ripoff(base_cost, payment_type, discount_plan):
+        # TODO: Implement
+        return base_cost
 
-        ripoffs = self.objects.all()
-        for ripoff in ripoffs:
-            total += ripoff.amount
+    def save(self, *args, **kwargs):
+        ripoff = self.calculate_simple_ripoff(**kwargs)
 
-        return total
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return "<" + "$" + str(self.ripoff_amount) + " - " + str(self.payment_type) + ">"
