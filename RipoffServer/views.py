@@ -12,15 +12,16 @@ def add_ripoff(request):
     errors = []
 
     product_name = request.POST['product_name']
-    location_name = request.POST['location_name']
-    payment_type_name = request.POST['payment_type_name']
-    cost = request.POST['cost']
-
     product_name = " ".join([word.strip().capitalize() for word in product_name.split().lower()])
 
     product, created = Product.objects.get_or_create(name=product_name)
-    location = Location.objects.get(name=location_name)
-    payment_type = PaymentType[payment_type_name]
+    location = Location.objects.get(name=request.POST['location_name'])
+    payment_type = PaymentType[request.POST['payment_type_name']]
+
+    cost = request.POST['cost']
+
+    if cost > 99.99:
+        errors.append("Item price cannot be higher than $99.99")
 
     if not errors:
         ripoff = Ripoff(product=product, location=location, payment_type=payment_type, cost=cost)

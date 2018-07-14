@@ -3,6 +3,8 @@ from django.contrib.auth import models as auth_models
 
 from RipoffServer.managers import RipoffManager
 
+from .ripoff_logic import calculate_simple_ripoff
+
 from enum import Enum
 
 
@@ -61,20 +63,18 @@ class Ripoff(models.Model):
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
     location = models.ForeignKey('Location', on_delete=models.CASCADE)
 
-    payment_type = models.CharField(max_length=3, choices=[(payment, payment.value) for payment in PaymentType])
-    base_cost = models.DecimalField(max_digits=3, decimal_places=2)
+    payment_type = models.CharField(max_length=3, choices=[(payment.name, payment.value) for payment in PaymentType])
+    base_cost = models.DecimalField(max_digits=4, decimal_places=2)
 
-    ripoff_amount = models.DecimalField(max_digits=3, decimal_places=2, blank=True)  # Populated by save method
-
-    @staticmethod
-    def calculate_simple_ripoff(base_cost, payment_type, discount_plan):
-        # TODO: Implement
-        return base_cost
+    ripoff_amount = models.DecimalField(max_digits=4, decimal_places=2, blank=True)  # Populated by save method
 
     def save(self, *args, **kwargs):
-        ripoff = self.calculate_simple_ripoff(**kwargs)
-
-        self.ripoff_amount = ripoff
+        self.ripoff_amount = calculate_simple_ripoff(
+            base_cost=self.base_cost,
+            payment_type=self.payment_type,
+            discount_plan=self.location.discount_plan,
+            rda_plan=self.user.rda_plan
+        )
 
         return super().save(*args, **kwargs)
 
