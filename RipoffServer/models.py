@@ -57,13 +57,14 @@ class Ripoff(models.Model):
 
     date = models.DateTimeField(auto_now=True)
 
-    user = models.ForeignKey('SiteUser', null=True, on_delete=models.SET_NULL)
-    product = models.CharField(max_length=40)
-    location = models.ForeignKey('Location', on_delete=None)
+    user = models.ForeignKey('SiteUser', on_delete=models.CASCADE)
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    location = models.ForeignKey('Location', on_delete=models.CASCADE)
+
     payment_type = models.CharField(max_length=3, choices=[(payment, payment.value) for payment in PaymentType])
     base_cost = models.DecimalField(max_digits=3, decimal_places=2)
 
-    ripoff_amount = models.DecimalField(max_digits=3, decimal_places=2, blank=True)  # Will be dynamically calculated
+    ripoff_amount = models.DecimalField(max_digits=3, decimal_places=2, blank=True)  # Populated by save method
 
     @staticmethod
     def calculate_simple_ripoff(base_cost, payment_type, discount_plan):
@@ -72,6 +73,8 @@ class Ripoff(models.Model):
 
     def save(self, *args, **kwargs):
         ripoff = self.calculate_simple_ripoff(**kwargs)
+
+        self.ripoff_amount = ripoff
 
         return super().save(*args, **kwargs)
 
