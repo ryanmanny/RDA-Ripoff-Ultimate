@@ -7,19 +7,22 @@ from enum import Enum
 
 
 # MODELS
+# TODO: Investigate if this model needs to be radically unseated from the hold of inheritance from wrong thing
 class SiteUser(auth_models.User):
     rda_plan = models.IntegerField(verbose_name="RDA Plan")  # Level 0-3
     wsu_id = models.CharField(verbose_name="WSU ID Number", max_length=8)
 
     def __str__(self):
-        return "<" + str(self.username) + " - " + str(self.wsu_id) + ">"
+        return "<SiteUser {NAME} - RDA Plan: {RDA_PLAN} - ID: {ID}>".format(
+            NAME=self.username, RDA_PLAN=self.rda_plan, ID=self.wsu_id)
 
 
 class Product(models.Model):
     name = models.CharField(max_length=40)
 
     def __str__(self):
-        return "<" + str(self.name) + ">"
+        return "<Product {NAME}>".format(
+            NAME=self.name)
 
 
 class Location(models.Model):
@@ -27,7 +30,8 @@ class Location(models.Model):
     discount_plan = models.ForeignKey('DiscountPlan', null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
-        return "<" + str(self.name) + " - " + str(self.discount_plan) + ">"
+        return "<Location {NAME} - {DISCOUNT_PLAN}>".format(
+            NAME=self.name, DISCOUNT_PLAN=self.discount_plan)
 
 
 class DiscountPlan(models.Model):
@@ -38,7 +42,8 @@ class DiscountPlan(models.Model):
     cc_discount = models.DecimalField(verbose_name="Cougar Cash Discount", max_digits=3, decimal_places=1)
 
     def __str__(self):
-        return "<" + "RDA: " + str(self.rda_discount) + ", CC: " + str(self.cc_discount) + ">"
+        return "<Discount Plan for {NAME} - RDA: {RDA_DISCOUNT} CC: {CC_DISCOUNT}>".format(
+            NAME=self.name, RDA_DISCOUNT=self.rda_discount, CC_DISCOUNT=self.cc_discount)
 
 
 class PaymentType(Enum):
@@ -71,4 +76,5 @@ class Ripoff(models.Model):
         return super().save(*args, **kwargs)
 
     def __str__(self):
-        return "<" + "$" + str(self.ripoff_amount) + " - " + str(self.payment_type) + ">"
+        return "<Ripoff of ${AMOUNT} - {PAYMENT_TYPE}>".format(
+            AMOUNT=self.ripoff_amount, PAYMENT_TYPE=PaymentType[self.payment_type])
