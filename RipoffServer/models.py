@@ -9,9 +9,19 @@ from enum import Enum
 
 
 # MODELS
+class RDAPlan(models.Model):
+    plan = models.IntegerField(max_length=1, verbose_name="Plan Number")
+    base_cost = models.IntegerField(max_length=4, verbose_name="Plan Base Cost")
+    dollars = models.IntegerField(max_length=4, verbose_name="RDA Dollars")
+
+    def __str__(self):
+        return "<RDA Plan {NUMBER} - ${DOLLARS}".format(
+            NUMBER=self.plan, DOLLARS=self.dollars)
+
+
 # TODO: Investigate if this model needs to be radically unseated from the hold of inheritance from wrong thing
 class SiteUser(auth_models.User):
-    rda_plan = models.IntegerField(verbose_name="RDA Plan")  # Level 0-3
+    rda_plan = models.ForeignKey('RDAPlan', verbose_name="RDA Plan", on_delete=models.CASCADE)  # Level 0-3
     wsu_id = models.CharField(verbose_name="WSU ID Number", max_length=8)
 
     def __str__(self):
@@ -41,7 +51,7 @@ class DiscountPlan(models.Model):
     name = models.CharField(max_length=40)
 
     rda_discount = models.DecimalField(verbose_name="RDA Discount", max_digits=3, decimal_places=1)
-    cc_discount = models.DecimalField(verbose_name="Cougar Cash Discount", max_digits=3, decimal_places=1)
+    cgr_discount = models.DecimalField(verbose_name="Cougar Cash Discount", max_digits=3, decimal_places=1)
 
     def __str__(self):
         return "<Discount Plan for {NAME} - RDA: {RDA_DISCOUNT} CC: {CC_DISCOUNT}>".format(
@@ -64,14 +74,14 @@ class Ripoff(models.Model):
     location = models.ForeignKey('Location', on_delete=models.CASCADE)
 
     payment_type = models.CharField(max_length=3, choices=[(payment.name, payment.value) for payment in PaymentType])
-    base_cost = models.DecimalField(max_digits=4, decimal_places=2)
+    base_price = models.DecimalField(max_digits=4, decimal_places=2)
 
     ripoff_amount = models.DecimalField(max_digits=4, decimal_places=2, blank=True)  # Populated by save method
 
     def save(self, *args, **kwargs):
         self.ripoff_amount = calculate_simple_ripoff(
-            base_cost=self.base_cost,
-            payment_type=self.payment_type,
+            base_price=self.base_price,
+            payment_type=PaymentType[self.payment_type],
             discount_plan=self.location.discount_plan,
             rda_plan=self.user.rda_plan
         )
