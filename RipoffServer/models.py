@@ -17,8 +17,7 @@ class RDAPlan(models.Model):
         verbose_name_plural = "RDA Plans"
 
     def __str__(self):
-        return "<RDA Plan {NUMBER} - ${DOLLARS}".format(
-            NUMBER=self.plan, DOLLARS=self.dollars)
+        return f"<RDA Plan {self.plan} - ${self.dollars}"
 
 
 # TODO: Investigate if this model needs to be radically unseated from the hold of inheritance from wrong thing
@@ -28,16 +27,14 @@ class SiteUser(auth_models.User):
     wsu_id = models.CharField(verbose_name="WSU ID Number", max_length=8)
 
     def __str__(self):
-        return "<SiteUser {NAME} - RDA Plan: {RDA_PLAN} - ID: {ID}>".format(
-            NAME=self.username, RDA_PLAN=self.rda_plan, ID=self.wsu_id)
+        return f"<SiteUser {self.username} - RDA Plan: {self.rda_plan} - ID: {self.wsu_id}>"
 
 
 class Product(models.Model):
     name = models.CharField(max_length=40)
 
     def __str__(self):
-        return "<Product {NAME}>".format(
-            NAME=self.name)
+        return f"<Product {self.name}>"
 
 
 class Location(models.Model):
@@ -45,8 +42,7 @@ class Location(models.Model):
     discount_plan = models.ForeignKey('DiscountPlan', null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
-        return "<Location {NAME} - {DISCOUNT_PLAN}>".format(
-            NAME=self.name, DISCOUNT_PLAN=self.discount_plan)
+        return f"<Location {self.name} - {self.discount_plan}>"
 
 
 class DiscountPlan(models.Model):
@@ -63,8 +59,7 @@ class DiscountPlan(models.Model):
         return float(self.cgr_discount) / 100.0
 
     def __str__(self):
-        return "<Discount Plan for {NAME} - RDA: {RDA_DISCOUNT} CC: {CC_DISCOUNT}>".format(
-            NAME=self.name, RDA_DISCOUNT=self.rda_discount, CC_DISCOUNT=self.cgr_discount)
+        return f"<Discount Plan for {self.name} - RDA: {self.rda_discount} CC: {self.cgr_discount}>"
 
 
 class PaymentType(ChoicesEnum):
@@ -108,5 +103,4 @@ class Ripoff(models.Model):
         return super().save(*args, **kwargs)
 
     def __str__(self):
-        return "<Ripoff of ${AMOUNT} - {PAYMENT_TYPE}>".format(
-            AMOUNT=self.ripoff_amount, PAYMENT_TYPE=PaymentType[self.payment_type])
+        return f"<Ripoff of ${self.ripoff_amount} - {self.payment_type}>"
