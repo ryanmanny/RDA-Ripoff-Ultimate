@@ -1,10 +1,11 @@
 from django.db import models
+from django.db.models import F, Sum
 
 
-class RipoffManager(models.Manager):
-    pass
-
-    # TODO: Aggregate Querysets with total
-
-    # def get_running_total(self):
-    #     return sum(ripoff.ripoff_amount for ripoff in self.objects.all())
+class RipoffSet(models.QuerySet):
+    def add_total_ripoff(self):
+        """Adds aggregate total to queryset
+        """
+        return self.aggregate(
+            total_ripoff=Sum('ripoff_amount')
+        )

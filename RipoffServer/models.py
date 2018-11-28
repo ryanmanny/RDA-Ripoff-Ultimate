@@ -1,13 +1,15 @@
 from django.db import models
 from django.contrib.auth import models as auth_models
 
-from .managers import RipoffManager
+from .managers import RipoffSet
 
 from .util import ChoicesEnum
 
 
 # MODELS
 class RDAPlan(models.Model):
+    plans = models.Manager()
+
     plan = models.IntegerField(verbose_name="Plan Number")
     base_cost = models.IntegerField(verbose_name="Plan Base Cost")
     dollars = models.IntegerField(verbose_name="RDA Dollars")
@@ -23,6 +25,8 @@ class RDAPlan(models.Model):
 # TODO: Investigate if this model needs to be radically unseated from the hold of inheritance from wrong thing
 # Maybe AbstractBaseUser is a better parent
 class SiteUser(auth_models.User):
+    users = models.Manager()
+
     rda_plan = models.ForeignKey('RDAPlan', verbose_name="RDA Plan", on_delete=models.CASCADE)  # Level 0-3
     wsu_id = models.CharField(verbose_name="WSU ID Number", max_length=8)
 
@@ -31,6 +35,8 @@ class SiteUser(auth_models.User):
 
 
 class Product(models.Model):
+    products = models.Manager()
+
     name = models.CharField(max_length=40)
 
     def __str__(self):
@@ -38,6 +44,8 @@ class Product(models.Model):
 
 
 class Location(models.Model):
+    locations = models.Manager()
+
     name = models.CharField(max_length=40)
     discount_plan = models.ForeignKey('DiscountPlan', null=True, on_delete=models.SET_NULL)
 
@@ -46,6 +54,8 @@ class Location(models.Model):
 
 
 class DiscountPlan(models.Model):
+    plans = models.Manager()
+
     # Percentage discounts applied to different purchase methods
     name = models.CharField(max_length=40)
 
@@ -69,7 +79,7 @@ class PaymentType(ChoicesEnum):
 
 
 class Ripoff(models.Model):
-    objects = RipoffManager()
+    ripoffs = RipoffSet.as_manager()
 
     date = models.DateTimeField(auto_now=True)
 
