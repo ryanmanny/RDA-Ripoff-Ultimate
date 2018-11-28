@@ -77,17 +77,10 @@ class Ripoff(models.Model):
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
     location = models.ForeignKey('Location', on_delete=models.CASCADE)
 
-    payment_type = models.CharField(
-        max_length=3,
-        choices=PaymentType.as_choices(),
-    )
+    payment_type = models.CharField(max_length=3, choices=PaymentType.as_choices())
     base_price = models.DecimalField(max_digits=4, decimal_places=2)
 
-    ripoff_amount = models.DecimalField(  # Populated by save method
-        max_digits=4,
-        decimal_places=2,
-        blank=True,
-    )
+    ripoff_amount = models.DecimalField(max_digits=4, decimal_places=2, blank=True)
 
     def calculate_ripoff_amount(self):
         base_price = self.base_price
