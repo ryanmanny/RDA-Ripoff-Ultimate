@@ -1,30 +1,34 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.urls import reverse
+
 from django.contrib.auth.decorators import login_required
 
-import json
+from .models import SiteUser
+from .models import Product
+from .forms import RipoffForm
 
-from RipoffServer.models import Product, Location, PaymentType, Ripoff
 
-
-@login_required
+# @login_required
 def add_ripoff(request):
-    errors = []
+    if request.method == "POST":
+        form = RipoffForm(request.POST)
+        if form.is_valid():
+            ripoff = form.save(commit=False)
 
-    product_name = request.POST['product_name']
-    product_name = " ".join([word.strip().capitalize() for word in product_name.split().lower()])
+            user = SiteUser.objects.get(username="RIPOFF_RICK")  # TODO: How to associate with user?
+            ripoff.user = user
 
-    product, created = Product.objects.get_or_create(name=product_name)
-    location = Location.objects.get(name=request.POST['location_name'])
-    payment_type = PaymentType[request.POST['payment_type_name']]
+            product_name = form.cleaned_data['product_name']
+            product, _ = Product.objects.get_or_create(name=product_name)
+            ripoff.product = product
 
-    cost = request.POST['cost']
+            ripoff.save()
 
-    if cost > 99.99:
-        errors.append("Item price cannot be higher than $99.99")
+            return JsonResponse({
+                "success": True,
+            })
+    else:
+        form = RipoffForm()
 
-    if not errors:
-        ripoff = Ripoff(product=product, location=location, payment_type=payment_type, cost=cost)
-        ripoff.save()
-
-    return HttpResponse(json.dumps({'errors': errors}))
+    return render(request, 'add_ripoff.html', {'form': form, 'errors': form.errors})

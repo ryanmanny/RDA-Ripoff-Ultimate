@@ -26,5 +26,5 @@ urlpatterns = [
 
 # Database endpoints
 urlpatterns += [
-    path('add_ripoff/', views.add_ripoff)
+    path('add_ripoff/', views.add_ripoff, name='add_ripoff')
 ]
