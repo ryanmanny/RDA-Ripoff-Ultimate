@@ -19,9 +19,15 @@ from django.urls import path
 
 from RipoffServer import views
 
+# TODO: Replace with patterns
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/login/', auth_views.LoginView.as_view()),
+]
+
+# Pages
+urlpatterns += [
+    path('', views.homepage, name='homepage'),
 ]
 
 # Database endpoints

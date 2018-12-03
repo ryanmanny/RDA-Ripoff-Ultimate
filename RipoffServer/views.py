@@ -9,24 +9,28 @@ from .models import Product
 from .forms import RipoffForm
 
 
-# @login_required
+def homepage(request):
+    return render(request, 'homepage.html', {"ripoff_link": reverse('add_ripoff')})
+
+
+@login_required
 def add_ripoff(request):
     if request.method == "POST":
         form = RipoffForm(request.POST)
         if form.is_valid():
             ripoff = form.save(commit=False)
 
-            user = SiteUser.objects.get(username="RIPOFF_RICK")  # TODO: How to associate with user?
+            user = SiteUser.users.get(username="RIPOFF_RICK")  # TODO: How to associate with user?
             ripoff.user = user
 
             product_name = form.cleaned_data['product_name']
-            product, _ = Product.objects.get_or_create(name=product_name)
+            product, _ = Product.products.get_or_create(name=product_name)
             ripoff.product = product
 
             ripoff.save()
 
             return JsonResponse({
-                "success": True,
+                "ripoff_amount": ripoff.ripoff_amount,
             })
     else:
         form = RipoffForm()
