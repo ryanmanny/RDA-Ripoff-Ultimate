@@ -1,37 +1,65 @@
-from abc import ABC
-
 from .models import PaymentType
+from .const import PULLMAN_SALES_TAX
 
 
 class RipoffCalculator:
-    # TODO: Evaluate overcomplicated factory idea
-    # def __new__(cls, *args, **kwargs):
-    #     payment_type = kwargs.pop('payment_type')
-    #     return super().__new__(
-    #         {
-    #             PaymentType.RDA: RDARipoffCalculator,
-    #             PaymentType.CGR: CGRRipoffCalculator,
-    #             PaymentType.CRD: CRDRipoffCalculator,
-    #         }[payment_type],
-    #         *args, **kwargs,
-    #     )
+    def __init__(self, user, payment_type, base_price, location):
+        self.payment_type = payment_type
+        self.base_price = base_price
+        self.discount_plan = location.discount_plan
+        self.rda_plan = user.rda_plan  # Not always used
 
-    def __init__(self, *args, **kwargs):
-        self.payment_type = kwargs.pop('payment_type')
-        self.base_price = kwargs.pop('base_price')
-        self.discount_plan = kwargs.pop('discount_plan')
-        self.rda_plan = kwargs.pop('rda_plan')  # Not always used
+        self.best_price = None
+        self.best_method = None
 
-        self._calculate_costs()
+        self.sticker_price = self._get_sticker_price()
+        self._calculate_costs(self.sticker_price)
 
-    def _calculate_costs(self):
-        self.disc
+    def _get_sticker_price(self):
+        """Find the credit card price from other payment types, for future calc
+        """
+        if self.payment_type == PaymentType.RDA:
+            return self.base_price / (1 - self.discount_plan.rda_discount_percent)
+        elif self.payment_type == PaymentType.CGR:
+            return self.base_price / (1 - self.discount_plan.cgr_discount_percent)
+        elif self.payment_type == PaymentType.CRD:
+            return self.base_price  # Assuming they didn't enter with tax included
 
-    def _best_value(self):
-        pass
+    def _rda_real_cost(self, sticker_price):
+        return self.rda_plan.real_cost(  # Re-adds proportionate base plan cost
+            sticker_price * (1 - self.discount_plan.rda_discount_percent)
+        )
 
-    def _price_paid(self):
-        pass
+    def _cgr_real_cost(self, sticker_price):
+        return sticker_price * (1 - self.discount_plan.cgr_discount_percent)
+
+    def _crd_real_cost(self, sticker_price):
+        return sticker_price * (1 + PULLMAN_SALES_TAX)
+
+    def _calculate_costs(self, sticker_price):
+        """Calculate the actual cost from the sticker price
+        """
+        self.costs = {
+            PaymentType.RDA: self._rda_real_cost(sticker_price),
+            PaymentType.CGR: self._cgr_real_cost(sticker_price),
+            PaymentType.CRD: self._crd_real_cost(sticker_price),
+        }
+
+    def best_value(self):
+        """Returns a Tuple of best payment method and best price
+        """
+        self.best_price, self.best_method = min(
+            self.costs.items(),
+            key=lambda c: c[1],
+        )
+        return self.best_price, self.best_method
+
+    def actual_price_paid(self):
+        """Returns actual price paid by user
+        """
+        return self.costs[self.payment_type]
 
     def ripoff(self):
-        return self._price_paid() - self._best_value()
+        """Returns amount of student loans you will have to take out to pay for stupidity
+        """
+        return self.actual_price_paid() - self.best_value()[0]

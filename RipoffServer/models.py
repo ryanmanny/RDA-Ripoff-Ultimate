@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.auth import models as auth_models
 
+from .managers import UserManager, UserSet
+from .managers import LocationManager, LocationSet
 from .managers import RipoffSet
-from .ripoff_calculator import RipoffCalculator
 
 from .util import ChoicesEnum
 
@@ -25,6 +26,11 @@ class RDAPlan(models.Model):
         verbose_name = "RDA Plan"
         verbose_name_plural = "RDA Plans"
 
+    def real_cost(self, cost):
+        """Adds virtual portion of base cost spent to item cost
+        """
+        return cost + self.base_cost * (cost / self.dollars)
+
     def __str__(self):
         return f"<RDA Plan {self.plan} - ${self.dollars}"
 
@@ -32,7 +38,7 @@ class RDAPlan(models.Model):
 # TODO: Investigate if this model needs to be radically unseated from the hold of inheritance from wrong thing
 # Maybe AbstractBaseUser is a better parent
 class SiteUser(auth_models.User):
-    users = models.Manager()
+    users = UserManager.from_queryset(UserSet)()
 
     rda_plan = models.ForeignKey(
         to='RDAPlan',  # Level 0-3
@@ -61,7 +67,7 @@ class Product(models.Model):
 
 
 class Location(models.Model):
-    locations = models.Manager()
+    locations = LocationManager.from_queryset(LocationSet)()
 
     name = models.CharField(
         max_length=40,
@@ -93,11 +99,13 @@ class DiscountPlan(models.Model):
         decimal_places=1,
     )
 
-    def get_percent_rda_discount(self):
-        return float(self.rda_discount) / 100.0
+    @property
+    def rda_discount_percent(self):
+        return self.rda_discount / 100
 
-    def get_percent_cgr_discount(self):
-        return float(self.cgr_discount) / 100.0
+    @property
+    def cgr_discount_percent(self):
+        return self.cgr_discount / 100
 
     def __str__(self):
         return f"<Discount Plan for {self.name} - RDA: {self.rda_discount} CC: {self.cgr_discount}>"
@@ -146,11 +154,13 @@ class Ripoff(models.Model):
     )
 
     def calculate_ripoff_amount(self):
+        from .ripoff_calculator import RipoffCalculator
+
         return RipoffCalculator(
+            user=self.user,
             payment_type=PaymentType[self.payment_type],
             base_price=self.base_price,
-            discount_plan=self.location.discount_plan,
-            rda_plan=self.user.rda_plan,
+            location=self.location,
         ).ripoff()
 
     def save(self, *args, **kwargs):
