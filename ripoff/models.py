@@ -1,9 +1,9 @@
 from django.db import models
 from django.contrib.auth import models as auth_models
 
-from .managers import UserManager, UserSet
+from .managers import SiteUserManager
 from .managers import LocationManager, LocationSet
-from .managers import RipoffSet
+from .managers import RipoffManager, RipoffSet
 
 from .util import ChoicesEnum
 
@@ -35,16 +35,15 @@ class RDAPlan(models.Model):
         return f"<RDA Plan {self.plan} - ${self.dollars}"
 
 
-# TODO: Investigate if this model needs to be radically unseated from the hold of inheritance from wrong thing
-# Maybe AbstractBaseUser is a better parent
-class SiteUser(auth_models.User):
-    users = UserManager.from_queryset(UserSet)()
+class SiteUser(auth_models.AbstractUser):
+    users = SiteUserManager()
 
     rda_plan = models.ForeignKey(
         to='RDAPlan',  # Level 0-3
         verbose_name="RDA Plan",
         related_name='users',
-        on_delete=models.CASCADE,
+        null=True,
+        on_delete=models.SET_NULL,  # TODO: Default to Plan 0
     )
     wsu_id = models.CharField(
         verbose_name="WSU ID #",
@@ -52,7 +51,7 @@ class SiteUser(auth_models.User):
     )
 
     def __str__(self):
-        return f"<SiteUser {self.username} - RDA Plan: {self.rda_plan} - ID: {self.wsu_id}>"
+        return f"<SiteUser {self.email} - RDA Plan: {self.rda_plan} - ID: {self.wsu_id}>"
 
 
 class Product(models.Model):
@@ -118,7 +117,7 @@ class PaymentType(ChoicesEnum):
 
 
 class Ripoff(models.Model):
-    ripoffs = RipoffSet.as_manager()
+    ripoffs = RipoffManager.from_queryset(RipoffSet)
 
     date = models.DateTimeField(auto_now=True)
 

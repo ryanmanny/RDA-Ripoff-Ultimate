@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from RipoffServer import views
+from ripoff import views
 
 # TODO: Replace with patterns
 urlpatterns = [

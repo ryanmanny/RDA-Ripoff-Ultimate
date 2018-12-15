@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
-    'RipoffServer.apps.RipoffServerConfig',
+    'ripoff.apps.RipoffConfig',
 ]
 
 MIDDLEWARE = [
@@ -51,7 +51,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'RDARipoffUltimate.urls'
+ROOT_URLCONF = 'ripoffultimate.urls'
 
 TEMPLATES = [
     {
@@ -70,7 +70,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'RDARipoffUltimate.wsgi.application'
+WSGI_APPLICATION = 'ripoffultimate.wsgi.application'
 
 
 # Database
@@ -82,7 +82,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
@@ -102,6 +101,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = 'ripoff.SiteUser'
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/

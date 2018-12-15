@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.auth import models as auth_models
+
 from django.db.models import F, Sum
 
 
@@ -11,13 +13,13 @@ class RipoffSet(models.QuerySet):
         )
 
 
-class UserSet(models.QuerySet):
+class RipoffManager(models.Manager):
     pass
 
 
-class UserManager(models.Manager):
+class SiteUserManager(auth_models.UserManager):
     def get_queryset(self):
-        print("Adding select_related discount_plan to UserSet")
+        print("Adding select_related discount_plan to SiteUserSet")
         return super().get_queryset().select_related('rda_plan')
 
 

@@ -9,10 +9,12 @@ from .models import Product
 from .forms import RipoffForm
 
 
+# TODO: Subclass from some Abstract Index Class that renders links to other pages
 def homepage(request):
     return render(request, 'homepage.html', {"ripoff_link": reverse('add_ripoff')})
 
 
+# TODO: Replace with class-based views?
 @login_required
 def add_ripoff(request):
     if request.method == "POST":
@@ -20,8 +22,7 @@ def add_ripoff(request):
         if form.is_valid():
             ripoff = form.save(commit=False)
 
-            user = SiteUser.users.get(username="RIPOFF_RICK")  # TODO: How to associate with user?
-            ripoff.user = user
+            ripoff.user = request.user
 
             product_name = form.cleaned_data['product_name']
             product, _ = Product.products.get_or_create(name=product_name)
