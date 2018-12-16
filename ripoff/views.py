@@ -4,14 +4,14 @@ from django.urls import reverse
 
 from django.contrib.auth.decorators import login_required
 
-from .models import SiteUser
 from .models import Product
 from .forms import RipoffForm
 
 
 # TODO: Subclass from some Abstract Index Class that renders links to other pages
+# TODO: Figure out if this template should go in the global templates folder...
 def homepage(request):
-    return render(request, 'homepage.html', {"ripoff_link": reverse('add_ripoff')})
+    return render(request, 'ripoff/homepage.html', {"ripoff_link": reverse('add_ripoff')})
 
 
 # TODO: Replace with class-based views?
@@ -36,4 +36,4 @@ def add_ripoff(request):
     else:
         form = RipoffForm()
 
-    return render(request, 'add_ripoff.html', {'form': form, 'errors': form.errors})
+    return render(request, 'ripoff/add_ripoff.html', {'form': form, 'errors': form.errors})
