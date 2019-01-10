@@ -10,10 +10,12 @@ from .util import ChoicesEnum
 
 # MODELS
 class RDAPlan(models.Model):
+    # TODO: Find a way to sensibly add dollars to an RDA Plan (HARD!)
     plans = models.Manager()
 
     plan = models.IntegerField(
-        verbose_name="Plan Number"
+        verbose_name="Plan Number",
+        unique=True,
     )
     base_cost = models.IntegerField(
         verbose_name="Plan Base Cost"
@@ -29,7 +31,10 @@ class RDAPlan(models.Model):
     def real_cost(self, cost):
         """Adds virtual portion of base cost spent to item cost
         """
-        return cost + self.base_cost * (cost / self.dollars)
+        try:
+            return cost + self.base_cost * (cost / self.dollars)
+        except ZeroDivisionError:  # Plan has no dollars, cost impossible
+            return float("inf")
 
     def __str__(self):
         return f"<RDA Plan {self.plan} - ${self.dollars}"
@@ -42,8 +47,8 @@ class SiteUser(auth_models.AbstractUser):
         to='RDAPlan',  # Level 0-3
         verbose_name="RDA Plan",
         related_name='users',
-        null=True,
-        on_delete=models.SET_NULL,  # TODO: Default to Plan 0
+        default=RDAPlan.plans.get(plan=0),  # Default to Plan 0
+        on_delete=models.SET_DEFAULT,
     )
     wsu_id = models.CharField(
         verbose_name="WSU ID #",
